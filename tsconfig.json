@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "declarationMap": true,
+    "noImplicitAny": false,
+    "removeComments": false,
+    "strict": true,
+    "strictNullChecks": true,
+    "noLib": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es2017",
+    "sourceMap": true,
+    "lib": ["es7"],
+    "baseUrl": "./src",
+    "outDir": "./lib",
+    "rootDir": "./src"
+  },
+  "exclude": ["./src/**/*.spec.ts", "node_modules"],
+  "include": ["./src"]
+}

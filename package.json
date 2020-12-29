@@ -1,0 +1,28 @@
+{
+  "name": "@madebywink/nestjs-hasura",
+  "version": "0.1.0",
+  "description": "Module for integrating Hasura Graphql Engine with NestJS",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "__test__"
+  },
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json",
+    "build:watch": "tsc --build tsconfig.build.json --watch",
+    "test": "jest"
+  },
+  "author": "Matt Cain <matt@madebywink.com>",
+  "license": "ISC",
+  "keywords": [
+    "NestJS",
+    "Typescript",
+    "GraphQL",
+    "Hasura"
+  ],
+  "dependencies": {
+    "@nestjs/common": "^7.6.3",
+    "graphql-request": "^3.4.0"
+  }
+}
