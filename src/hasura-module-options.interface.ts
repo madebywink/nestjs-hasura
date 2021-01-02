@@ -25,10 +25,12 @@ export interface HasuraInstanceOptions {
   eventsReporting?: EventsReportingOptions;
   actionsReporting?: ActionsReportingOptions;
   graphQLClientOptions?: GraphQLClientConstructorParams[1];
+  eventsSecret?: string;
+  actionsSecret?: string;
 }
 
 export interface NamedHasuraInstanceOptions extends HasuraInstanceOptions {
-  instanceName: string;
+  name: string;
 }
 
 export type HasuraModuleOptions =

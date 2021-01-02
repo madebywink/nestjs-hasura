@@ -2,9 +2,9 @@ import { Inject, SetMetadata } from "@nestjs/common";
 import {
   HASURA_ACTION_HANDLER,
   HASURA_EVENT_HANDLER,
-  HASURA_SDK_CONFIG_INJECT,
+  HASURA_MODULE_OPTIONS_INJECT,
   HASURA_SDK_INJECT,
-  NAMED_HASURA_SDK_CONFIG_INJECT,
+  NAMED_HASURA_SDK_OPTIONS_INJECT,
 } from "./hasura.constants";
 
 interface HasuraEventHandlerOpts {
@@ -29,7 +29,7 @@ export function InjectHasuraSdk(name?: string): () => ParameterDecorator {
     return () => Inject(HASURA_SDK_INJECT);
   }
 
-  return () => Inject(NAMED_HASURA_SDK_CONFIG_INJECT(name));
+  return () => Inject(NAMED_HASURA_SDK_OPTIONS_INJECT(name));
 }
 
 /**
@@ -38,12 +38,21 @@ export function InjectHasuraSdk(name?: string): () => ParameterDecorator {
  *
  * @param name optional name of Hasura instance, if using multiple
  */
-export function InjectHasuraSdkConfig(name?: string): () => ParameterDecorator {
+export function InjectHasuraSdkOptions(
+  name?: string
+): () => ParameterDecorator {
   if (!name) {
-    return () => Inject(HASURA_SDK_CONFIG_INJECT);
+    return () => Inject(NAMED_HASURA_SDK_OPTIONS_INJECT);
   }
 
-  return () => Inject(NAMED_HASURA_SDK_CONFIG_INJECT(name));
+  return () => Inject(NAMED_HASURA_SDK_OPTIONS_INJECT(name));
+}
+
+/**
+ * Inject the Hasura module options
+ */
+export function InjectHasuraModuleOptions(): ParameterDecorator {
+  return Inject(HASURA_MODULE_OPTIONS_INJECT);
 }
 
 /**

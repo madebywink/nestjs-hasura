@@ -23,6 +23,12 @@
   ],
   "dependencies": {
     "@nestjs/common": "^7.6.3",
+    "graphql": "^15.4.0",
     "graphql-request": "^3.4.0"
+  },
+  "devDependencies": {
+    "express": "^4.17.1",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^6.6.3"
   }
 }

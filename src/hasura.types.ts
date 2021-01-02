@@ -1,3 +1,6 @@
+import { HasuraEventTriggerPayload } from "./dto/hasura-event-trigger-payload.interface";
+import { HasuraScheduledEventPayload } from "./dto/hasura-scheduled-event-payload.interface";
+
 export type OpName = "INSERT" | "UPDATE" | "DELETE" | "MANUAL";
 
 export enum HasuraApi {
@@ -13,3 +16,9 @@ export enum HasuraApi {
 }
 
 export type SchemaMetadataReportingLevel = "THOW" | "WARN";
+
+export function isHasuraScheduledEvent<T, U extends OpName>(
+  evt: HasuraEventTriggerPayload<T, U> | HasuraScheduledEventPayload
+): evt is HasuraScheduledEventPayload {
+  return "scheduled_time" in evt;
+}
