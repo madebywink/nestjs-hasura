@@ -21,21 +21,28 @@ type ActionsReportingOptions = ReportingOptionsBase & {
 };
 
 export interface HasuraInstanceOptions {
-  hasuraUrl: string;
+  scheme?: "http" | "https";
+  hostname: string;
   eventsReporting?: EventsReportingOptions;
   actionsReporting?: ActionsReportingOptions;
   graphQLClientOptions?: GraphQLClientConstructorParams[1];
   eventsSecret?: string;
+  eventsSecretHeader?: string;
   actionsSecret?: string;
+  actionsSecretHeader?: string;
 }
 
 export interface NamedHasuraInstanceOptions extends HasuraInstanceOptions {
   name: string;
 }
 
+export interface HasuraMultiInstanceModuleOptions {
+  instances: NamedHasuraInstanceOptions[];
+}
+
 export type HasuraModuleOptions =
   | HasuraInstanceOptions
-  | { instances: NamedHasuraInstanceOptions[] };
+  | HasuraMultiInstanceModuleOptions;
 
 export interface HasuraOptionsFactory {
   createHausraOptions(): Promise<HasuraModuleOptions> | HasuraModuleOptions;
@@ -66,3 +73,9 @@ export type HasuraModuleAsyncOptions =
   | HasuraModuleAsyncOptionsFactory
   | HasuraModuleAsyncOptionsClass
   | HasuraModuleAsyncOptionsExisting;
+
+export function isMultiInstanceOptions(
+  options: HasuraModuleOptions
+): options is HasuraMultiInstanceModuleOptions {
+  return "instances" in options;
+}

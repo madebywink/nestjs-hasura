@@ -76,18 +76,18 @@ export class HasuraModule {
       return options.instances
         .map((i): Provider[] => [
           {
-            provide: NAMED_HASURA_SDK_OPTIONS_INJECT(i.instanceName),
+            provide: NAMED_HASURA_SDK_OPTIONS_INJECT(i.name),
             useValue: i,
           },
           {
-            provide: NAMED_HASURA_SDK_INJECT(i.instanceName),
+            provide: NAMED_HASURA_SDK_INJECT(i.name),
             useFactory: (opts: NamedHasuraInstanceOptions) => {
               return new GraphQLClient(
                 opts.hasuraUrl,
                 opts.graphQLClientOptions
               );
             },
-            inject: [NAMED_HASURA_SDK_OPTIONS_INJECT(i.instanceName)],
+            inject: [NAMED_HASURA_SDK_OPTIONS_INJECT(i.name)],
           },
         ])
         .reduce((acc, curr) => acc.concat(curr));

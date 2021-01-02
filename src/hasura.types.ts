@@ -22,3 +22,8 @@ export function isHasuraScheduledEvent<T, U extends OpName>(
 ): evt is HasuraScheduledEventPayload {
   return "scheduled_time" in evt;
 }
+
+export enum WebhookType {
+  Action,
+  Event,
+}
