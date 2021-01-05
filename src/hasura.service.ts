@@ -3,66 +3,60 @@ import {
   HasuraInstanceOptions,
   HasuraModuleOptions,
   isMultiInstanceOptions,
-} from "./hasura-module-options.interface";
+  NamedHasuraInstanceOptions,
+} from "./hasura.module-options";
 import {
   DEFAULT_EVENTS_HANDLER_PATH,
   DEFAULT_HASURA_PATH,
 } from "./hasura.constants";
-import { InjectHasuraModuleOptions } from "./hasura.decorators";
-import { WebhookType } from "./hasura.types";
+import { HasuraApi, WebhookType } from "./hasura.types";
 import * as url from "url";
 import {
   INSTANCE_NOT_FOUND,
   NAMED_INSTANCES_MISMATCH,
   PATH_NOT_WEBHOOK,
 } from "./hasura.error-messages";
+import { DEFAULT_HASURA_ADMIN_SECRET_HEADER } from "./hasura.module-options.defaults";
+import * as fs from "fs/promises";
+import * as path from "path";
 
 @Injectable()
 export class HasuraService {
-  constructor(
-    @InjectHasuraModuleOptions()
-    private readonly hasuraOptions: HasuraModuleOptions
-  ) {}
+  static hasuraAdminSecretHeader(
+    instanceOptions: HasuraInstanceOptions
+  ): string {
+    return (
+      instanceOptions.adminSecretHeader ?? DEFAULT_HASURA_ADMIN_SECRET_HEADER
+    );
+  }
 
-  hasuraGraphqlUrl(name?: string);
+  static hasuraGraphqlUrl(instanceOptions: HasuraInstanceOptions): string {
+    return new url.URL(
+      HasuraApi.GraphQL,
+      HasuraService.hasuraBaseUrl(instanceOptions)
+    ).toString();
+  }
 
-  hasuraBaseUrl(name?: string): string {
+  static hasuraBaseUrl(instanceOptions: HasuraInstanceOptions): string {
     function buildUrl(scheme: "http" | "https", hostname: string): string {
       return new url.URL(`${scheme}://${hostname}`).toString();
     }
 
-    if (!isMultiInstanceOptions(this.hasuraOptions)) {
-      if (name) {
-        throw new Error(NAMED_INSTANCES_MISMATCH);
-      }
-    } else {
-      const instance = this.namedHasuraInstance(name);
-    }
-
-    if ("instances" in this.hasuraOptions) {
-      if (!name) {
-        throw new Error(NAMED_INSTANCES_MISMATCH);
-      }
-
-      const instance = this.hasuraOptions.instances.find(
-        (instance) => instance.name === name
-      );
-
-      return buildUrl(instance.scheme ?? "https", instance.hostname);
-    } else {
-      return buildUrl(
-        this.hasuraOptions.scheme ?? "https",
-        this.hasuraOptions.hostname
-      );
-    }
+    return buildUrl(
+      instanceOptions.scheme ?? "https",
+      instanceOptions.hostname
+    );
   }
 
-  namedHasuraInstance(name: string): HasuraInstanceOptions {
-    if (!isMultiInstanceOptions(this.hasuraOptions)) {
+  static namedHasuraInstance(
+    name: string,
+    options: HasuraModuleOptions
+  ): NamedHasuraInstanceOptions {
+    if (!isMultiInstanceOptions(options)) {
       throw new Error(NAMED_INSTANCES_MISMATCH);
     }
 
-    const instance = this.hasuraOptions.instances.find(
+    const instance = options.instances.find(
       (instance) => instance.name === name
     );
 
@@ -73,7 +67,7 @@ export class HasuraService {
     return instance;
   }
 
-  webhookTypeFromPath(path: string): WebhookType {
+  static webhookTypeFromPath(path: string): WebhookType {
     if (this.isActionsPath(path)) {
       return WebhookType.Action;
     } else if (this.isEventsPath(path)) {
@@ -83,29 +77,29 @@ export class HasuraService {
     }
   }
 
-  hasuraPath(): string {
+  static hasuraPath(): string {
     return DEFAULT_HASURA_PATH;
   }
 
-  eventsPath(): string {
+  static eventsPath(): string {
     return DEFAULT_EVENTS_HANDLER_PATH;
   }
 
-  actionsPath(): string {
+  static actionsPath(): string {
     return DEFAULT_EVENTS_HANDLER_PATH;
   }
 
-  isActionsPath(path: string): boolean {
+  static isActionsPath(path: string): boolean {
     const split = HasuraService.splitPath(path);
     return this.isHasuraPath(split) && split[1] === this.actionsPath();
   }
 
-  isEventsPath(path: string): boolean {
+  static isEventsPath(path: string): boolean {
     const split = HasuraService.splitPath(path);
     return this.isHasuraPath(split) && split[1] === this.eventsPath();
   }
 
-  isHasuraPath(splitPath: string[]): boolean {
+  static isHasuraPath(splitPath: string[]): boolean {
     return splitPath[0] === this.hasuraPath();
   }
 
@@ -113,5 +107,19 @@ export class HasuraService {
     const [x, ...rest] = path.split("/");
 
     return rest;
+  }
+
+  static async hasuraInstanceOptionsValidForRootRegistration(
+    instanceOptions: HasuraInstanceOptions
+  ): Promise<boolean> {
+    const pathStr = instanceOptions.sdkOptions?.codegen?.sdkPath;
+    if (typeof pathStr !== "string") return false;
+    const fPath = path.resolve(pathStr);
+    try {
+      await fs.access(fPath);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }

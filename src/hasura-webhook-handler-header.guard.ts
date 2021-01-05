@@ -3,7 +3,7 @@ import {
   HasuraInstanceOptions,
   HasuraModuleOptions,
   NamedHasuraInstanceOptions,
-} from "./hasura-module-options.interface";
+} from "./hasura.module-options";
 import { InjectHasuraModuleOptions } from "./hasura.decorators";
 import { Request } from "express";
 import { WebhookType } from "./hasura.types";
@@ -42,7 +42,7 @@ export class HasuraEventHandlerHeaderGuard implements CanActivate {
 
   canActivate(ctx: ExecutionContext): boolean {
     const req = ctx.switchToHttp().getRequest<Request>();
-    const type = this.hasuraService.webhookTypeFromPath(req.path);
+    const type = HasuraService.webhookTypeFromPath(req.path);
 
     if ("instances" in this.hasuraOptions) {
       const instance = this.hasuraOptions.instances.find(

@@ -1,10 +1,14 @@
-import { Abstract, ModuleMetadata, Provider, Type } from "@nestjs/common";
+import { Abstract, ModuleMetadata, Type } from "@nestjs/common";
 import { GraphQLClient } from "graphql-request";
+import { HasuraSdkRequestMiddleware } from "./hasura-sdk.types";
+import { HasuraService } from "./hasura.service";
 import { SchemaMetadataReportingLevel } from "./hasura.types";
 
 type GraphQLClientConstructorParams = ConstructorParameters<
   typeof GraphQLClient
 >;
+
+type GrapQLClientOptions = GraphQLClientConstructorParams[1];
 
 interface ReportingOptionsBase {
   level: SchemaMetadataReportingLevel;
@@ -20,16 +24,27 @@ type ActionsReportingOptions = ReportingOptionsBase & {
   excluded_actions?: string[];
 };
 
+interface HasuraSdkOptions {
+  codegen?: {
+    outputDir?: string;
+    sdkPath?: string;
+    requestMiddleware?: HasuraSdkRequestMiddleware;
+  };
+}
+
 export interface HasuraInstanceOptions {
   scheme?: "http" | "https";
   hostname: string;
+  adminSecret: string;
+  adminSecretHeader?: string;
   eventsReporting?: EventsReportingOptions;
   actionsReporting?: ActionsReportingOptions;
-  graphQLClientOptions?: GraphQLClientConstructorParams[1];
+  graphQLClientOptions?: GrapQLClientOptions;
   eventsSecret?: string;
   eventsSecretHeader?: string;
   actionsSecret?: string;
   actionsSecretHeader?: string;
+  sdkOptions?: HasuraSdkOptions;
 }
 
 export interface NamedHasuraInstanceOptions extends HasuraInstanceOptions {
@@ -78,4 +93,18 @@ export function isMultiInstanceOptions(
   options: HasuraModuleOptions
 ): options is HasuraMultiInstanceModuleOptions {
   return "instances" in options;
+}
+
+export function mergeGraphqlClientOptions(
+  instanceOptions: HasuraInstanceOptions
+): GrapQLClientOptions {
+  return {
+    ...instanceOptions.graphQLClientOptions,
+    headers: {
+      ...instanceOptions.graphQLClientOptions?.headers,
+      [HasuraService.hasuraAdminSecretHeader(
+        instanceOptions
+      )]: instanceOptions.adminSecret,
+    },
+  };
 }
