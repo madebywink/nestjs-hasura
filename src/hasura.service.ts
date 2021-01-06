@@ -1,17 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import {
-  HasuraInstanceOptions,
-  HasuraModuleOptions,
-  isMultiInstanceOptions,
-  NamedHasuraInstanceOptions,
-} from "./hasura.module-options";
+import { HasuraModuleOptions } from "./hasura.module-options";
 import { HasuraApi, WebhookType } from "./hasura.types";
 import * as url from "url";
-import {
-  INSTANCE_NOT_FOUND,
-  NAMED_INSTANCES_MISMATCH,
-  PATH_NOT_WEBHOOK,
-} from "./hasura.error-messages";
+import { PATH_NOT_WEBHOOK } from "./hasura.error-messages";
 import { DEFAULT_HASURA_ADMIN_SECRET_HEADER } from "./defaults/hasura.module-options.defaults";
 import * as fs from "fs/promises";
 import * as path from "path";
@@ -26,11 +17,9 @@ export class HasuraService {
    * Get the Hasura Admin Secret header for a given Hasura instance
    * @param instanceOptions
    */
-  static hasuraAdminSecretHeader(
-    instanceOptions: HasuraInstanceOptions
-  ): string {
+  static hasuraAdminSecretHeader(moduleOptions: HasuraModuleOptions): string {
     return (
-      instanceOptions.adminSecretHeader ?? DEFAULT_HASURA_ADMIN_SECRET_HEADER
+      moduleOptions.adminSecretHeader ?? DEFAULT_HASURA_ADMIN_SECRET_HEADER
     );
   }
 
@@ -38,10 +27,10 @@ export class HasuraService {
    * Get the Hasura GraphQL url for a given Hasura instance
    * @param instanceOptions
    */
-  static hasuraGraphqlUrl(instanceOptions: HasuraInstanceOptions): string {
+  static hasuraGraphqlUrl(moduleOptions: HasuraModuleOptions): string {
     return new url.URL(
       HasuraApi.GraphQL,
-      HasuraService.hasuraBaseUrl(instanceOptions)
+      HasuraService.hasuraBaseUrl(moduleOptions)
     ).toString();
   }
 
@@ -49,40 +38,12 @@ export class HasuraService {
    * Get the Hasura GraphQL Engine base url for a given Hasura instance
    * @param instanceOptions
    */
-  static hasuraBaseUrl(instanceOptions: HasuraInstanceOptions): string {
+  static hasuraBaseUrl(moduleOptions: HasuraModuleOptions): string {
     function buildUrl(scheme: "http" | "https", hostname: string): string {
       return new url.URL(`${scheme}://${hostname}`).toString();
     }
 
-    return buildUrl(
-      instanceOptions.scheme ?? "https",
-      instanceOptions.hostname
-    );
-  }
-
-  /**
-   * Find the instances options for a named Hasura instance in a multi instance configuration
-   * @param name
-   * @param options
-   * @throws if the module configuration is not a multi intsance configuration, or if no instance configuration is found for the given name
-   */
-  static namedHasuraInstance(
-    name: string,
-    options: HasuraModuleOptions
-  ): NamedHasuraInstanceOptions {
-    if (!isMultiInstanceOptions(options)) {
-      throw new Error(NAMED_INSTANCES_MISMATCH);
-    }
-
-    const instance = options.instances.find(
-      (instance) => instance.name === name
-    );
-
-    if (!instance) {
-      throw new Error(INSTANCE_NOT_FOUND(name));
-    }
-
-    return instance;
+    return buildUrl(moduleOptions.scheme ?? "https", moduleOptions.hostname);
   }
 
   /**
@@ -159,9 +120,9 @@ export class HasuraService {
    * @throws if no valid codegen file is provided to instance configuration
    */
   static async hasuraInstanceOptionsValidForRootRegistration(
-    instanceOptions: HasuraInstanceOptions
+    moduleOptions: HasuraModuleOptions
   ): Promise<boolean> {
-    const pathStr = instanceOptions.sdkOptions?.codegen?.sdkPath;
+    const pathStr = moduleOptions.sdkOptions?.codegen?.sdkPath;
     if (typeof pathStr !== "string") return false;
     const fPath = path.resolve(pathStr);
     try {

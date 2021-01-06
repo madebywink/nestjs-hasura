@@ -1,9 +1,7 @@
 import { generate } from "@graphql-codegen/cli";
 import { Injectable } from "@nestjs/common";
-import {
-  HasuraInstanceOptions,
-  NamedHasuraInstanceOptions,
-} from "./hasura.module-options";
+import { InjectHasuraModuleOptions } from "./decorators/inject-hasura-module-options.decorator";
+import { HasuraModuleOptions } from "./hasura.module-options";
 import { HasuraService } from "./hasura.service";
 
 /**
@@ -12,9 +10,7 @@ import { HasuraService } from "./hasura.service";
 @Injectable()
 export class HasuraCodegenService {
   constructor(
-    private readonly hasuraInstanceOptions:
-      | HasuraInstanceOptions
-      | NamedHasuraInstanceOptions
+    @InjectHasuraModuleOptions() hasuraModuleOptions: HasuraModuleOptions
   ) {}
 
   /**
@@ -23,7 +19,7 @@ export class HasuraCodegenService {
   async graphqlCodegen(): Promise<void> {
     await generate({
       schema: {
-        [HasuraService.hasuraGraphqlUrl(this.hasuraInstanceOptions)]: {
+        [HasuraService.hasuraGraphqlUrl(this.hasuraModuleOptions)]: {
           headers: {
             [HasuraService.hasuraAdminSecretHeader(
               this.hasuraInstanceOptions

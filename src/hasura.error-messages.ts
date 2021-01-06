@@ -16,3 +16,6 @@ export const MISSING_INSTANCE_NAME = "Expected an instance name";
 
 export const SYNC_REGISTER_CODEGEN_ENBALED =
   "When registering HasuraModule synchronously, you must bring your own codegen and explicitly configure instance options with codegen.sdkPath to point to a file with the exported SDK";
+
+export const WEBHOOK_HEADER_SECRET_MISMATCH = (type: WebhookType) =>
+  `Provided a secret when header is undefined for webhook type: ${type}`;

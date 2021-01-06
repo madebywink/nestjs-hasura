@@ -5,17 +5,8 @@ import {
 } from "../hasura.tokens";
 
 /**
- * Inject the GraphQL Request Client instance. If multiple instances are being used,
- * the `name` parameter is used to distinguish between them
- *
- * @param name optional name of Hasura instance, if using multiple
+ * Inject the GraphQL Request Client instance
  */
-export function InjectHasuraGraphQLClient(
-  name?: string
-): () => ParameterDecorator {
-  if (!name) {
-    return () => Inject(HASURA_GRAPHQL_CLIENT_INJECT);
-  }
-
-  return () => Inject(NAMED_HASURA_GRAPHQL_CLIENT_INJECT(name));
+export function InjectHasuraGraphQLClient(): () => ParameterDecorator {
+  return () => Inject(HASURA_GRAPHQL_CLIENT_INJECT);
 }

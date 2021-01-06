@@ -32,7 +32,7 @@ interface HasuraSdkOptions {
   };
 }
 
-export interface HasuraInstanceOptions {
+export interface HasuraModuleOptions {
   scheme?: "http" | "https";
   hostname: string;
   adminSecret: string;
@@ -46,18 +46,6 @@ export interface HasuraInstanceOptions {
   actionsSecretHeader?: string;
   sdkOptions?: HasuraSdkOptions;
 }
-
-export interface NamedHasuraInstanceOptions extends HasuraInstanceOptions {
-  name: string;
-}
-
-export interface HasuraMultiInstanceModuleOptions {
-  instances: NamedHasuraInstanceOptions[];
-}
-
-export type HasuraModuleOptions =
-  | HasuraInstanceOptions
-  | HasuraMultiInstanceModuleOptions;
 
 export interface HasuraOptionsFactory {
   createHausraOptions(): Promise<HasuraModuleOptions> | HasuraModuleOptions;
@@ -89,14 +77,8 @@ export type HasuraModuleAsyncOptions =
   | HasuraModuleAsyncOptionsClass
   | HasuraModuleAsyncOptionsExisting;
 
-export function isMultiInstanceOptions(
-  options: HasuraModuleOptions
-): options is HasuraMultiInstanceModuleOptions {
-  return "instances" in options;
-}
-
 export function mergeGraphqlClientOptions(
-  instanceOptions: HasuraInstanceOptions
+  instanceOptions: HasuraModuleOptions
 ): GrapQLClientOptions {
   return {
     ...instanceOptions.graphQLClientOptions,
