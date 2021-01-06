@@ -3,16 +3,16 @@ import {
   HasuraInstanceOptions,
   HasuraModuleOptions,
   NamedHasuraInstanceOptions,
-} from "./hasura.module-options";
-import { InjectHasuraModuleOptions } from "./hasura.decorators";
+} from "../hasura.module-options";
 import { Request } from "express";
-import { WebhookType } from "./hasura.types";
-import { HasuraService } from "./hasura.service";
+import { WebhookType } from "../hasura.types";
+import { HasuraService } from "../hasura.service";
 import {
   DEFAULT_ACTIONS_SECRET_HEADER,
   DEFAULT_INSTANCE_NAME,
-} from "./hasura.constants";
-import { INVALID_WEBHOOK_TYPE } from "./hasura.error-messages";
+} from "../hasura.constants";
+import { INVALID_WEBHOOK_TYPE } from "../hasura.error-messages";
+import { InjectHasuraModuleOptions } from "../decorators/inject-hasura-module-options.decorator";
 
 export class HasuraEventHandlerHeaderGuard implements CanActivate {
   private readonly secrets: Record<string, string> = {};
@@ -20,8 +20,7 @@ export class HasuraEventHandlerHeaderGuard implements CanActivate {
   constructor(
     type: WebhookType,
     @InjectHasuraModuleOptions()
-    private readonly hasuraOptions: HasuraModuleOptions,
-    private readonly hasuraService: HasuraService
+    private readonly hasuraOptions: HasuraModuleOptions
   ) {
     if ("instances" in hasuraOptions) {
       for (const instance of hasuraOptions.instances) {
@@ -56,6 +55,12 @@ export class HasuraEventHandlerHeaderGuard implements CanActivate {
     }
   }
 
+  /**
+   * Test if route can activate for a particular instance, determined by the request hostname
+   * @param type
+   * @param req
+   * @param instance
+   */
   private canActivateForInstance(
     type: WebhookType,
     req: Request,
@@ -80,6 +85,11 @@ export class HasuraEventHandlerHeaderGuard implements CanActivate {
     return true;
   }
 
+  /**
+   * Determine the appropriate secret for the route (either event or action) for a given Hasura instance
+   * @param type
+   * @param instance
+   */
   private instanceSecretyByType(
     type: WebhookType,
     instance: Pick<HasuraInstanceOptions, "actionsSecret" | "eventsSecret">
@@ -94,6 +104,12 @@ export class HasuraEventHandlerHeaderGuard implements CanActivate {
     }
   }
 
+  /**
+   * Gets the Hasura instance's action secret or event secret, depending on provided type
+   * @param type
+   * @param instance
+   * @throws If the provided webhook type does not match an action or an event
+   */
   private instanceSecretHeaderByType(
     type: WebhookType,
     instance: Pick<

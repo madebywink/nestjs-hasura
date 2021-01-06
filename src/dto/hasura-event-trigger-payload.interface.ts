@@ -1,4 +1,4 @@
-import { HasuraSession } from "../hasura-session.interface";
+import { HasuraSession } from "../interfaces/hasura-session.interface";
 import { OpName } from "../hasura.types";
 
 export interface HasuraEventTriggerPayload<T, O extends OpName> {

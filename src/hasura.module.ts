@@ -1,6 +1,7 @@
 import { DynamicModule, Module, Provider } from "@nestjs/common";
 import { GraphQLClient } from "graphql-request";
 import {
+  HasuraInstanceOptions,
   HasuraModuleAsyncOptions,
   HasuraModuleAsyncOptionsClass,
   HasuraModuleOptions,
@@ -30,28 +31,24 @@ import { GetSdk } from "./hasura-sdk.types";
 
 @Module({})
 export class HasuraModule {
+  /**
+   * Synchronously register the module. Not compatible with managed code generation
+   * @param options 
+   * @param getSdk 
+   */
   static register(options: HasuraModuleOptions, getSdk: GetSdk): DynamicModule {
     // Test if provided instances are correctly configured for manual codegen.
     // Synchronous module registration does not support managed codegen
-    let instanceTests: Promise<boolean>[];
-    if (isMultiInstanceOptions(options)) {
-      instanceTests = options.instances.map(i => HasuraService.hasuraInstanceOptionsValidForRootRegistration(i))
-    } else {
-      instanceTests = [HasuraService.hasuraInstanceOptionsValidForRootRegistration(options)]
-    }
-
-    if (!instanceTests.every(t => !!t)) {
-      throw new Error(SYNC_REGISTER_CODEGEN_ENBALED)
-    }
+    HasuraModule.testValidSynchronousRegisterConfig(options)
 
     return {
       module: HasuraModule,
       providers: [
-        ...this.createSdkProviders(options),
         {
           provide: HASURA_MODULE_OPTIONS_INJECT,
           useValue: options,
         },
+
       ],
     };
   }
@@ -96,21 +93,20 @@ export class HasuraModule {
     };
   }
 
-  private static createModuleInstanceOptionsProviders(options: HasuraModuleOptions): Provider[] {
-    let providers: Provider[] = [{
-      provide: HASURA_MODULE_OPTIONS_INJECT,
-      useValue: options,
-    }];
-
+  /**
+   * Creates providers to inject configuration for each provided Hasura instance
+   * @param options 
+   */
+  private static createInstanceOptionsProviders(options: HasuraModuleOptions): Provider[] {
     if (isMultiInstanceOptions(options)) {
-      return [...providers, ...options.instances.map((i: NamedHasuraInstanceOptions): Provider => {
+      return options.instances.map((i: NamedHasuraInstanceOptions): Provider => {
         return {
           provide: NAMED_HASURA_INSTANCE_OPTIONS_INJECT(i.name),
           useValue: i
         }
-      })]
+      })
     } else {
-      return [...providers, {
+      return [{
         provide: HASURA_INSTANCE_OPTIONS_INJECT,
         useValue: options
       }]
@@ -176,18 +172,7 @@ export class HasuraModule {
           {
             provide: NAMED_HASURA_SDK_INJECT(i.name),
             async useFactory(client: GraphQLClient, codegen: HasuraCodegenService) {
-              if (!!getSdk) {
-                return getSdk(client)
-              }          
-
-              await codegen.graphqlCodegen()
-              const generated = await import(codegen.generatedFile())
-
-              if(!('getSdk' in generated)) {
-                throw new Error('Generated file missing getSdk')
-              }
-
-              return generated.getSdk(client, i.sdkOptions?.codegen?.requestMiddleware ?? ((x: unknown) => x)) 
+              return HasuraModule.getHasuraInstanceSdk
             },
             inject: [NAMED_HASURA_GRAPHQL_CLIENT_INJECT(i.name), NAMED_HASURA_CODEGEN_INJECT(i.name)]
           },
@@ -204,6 +189,34 @@ export class HasuraModule {
           useValue:
         },
       ];
+    }
+  }
+
+  private static getHasuraInstanceSdk(instance: HasuraInstanceOptions ,client: GraphQLClient, codegen: HasuraCodegenService, getSdk?: GetSdk): Promise<unknown> | unknown {
+    if (!!getSdk) {
+      return getSdk(client)
+    }          
+
+    await codegen.graphqlCodegen()
+    const generated = await import(codegen.generatedFile())
+
+    if(!('getSdk' in generated)) {
+      throw new Error('Generated file missing getSdk')
+    }
+
+    return generated.getSdk(client, instance.sdkOptions?.codegen?.requestMiddleware ?? ((x: unknown) => x)) 
+  }
+
+  private static testValidSynchronousRegisterConfig(options: HasuraModuleOptions): void {
+    let instanceTests: Promise<boolean>[];
+    if (isMultiInstanceOptions(options)) {
+      instanceTests = options.instances.map(i => HasuraService.hasuraInstanceOptionsValidForRootRegistration(i))
+    } else {
+      instanceTests = [HasuraService.hasuraInstanceOptionsValidForRootRegistration(options)]
+    }
+
+    if (!instanceTests.every(t => !!t)) {
+      throw new Error(SYNC_REGISTER_CODEGEN_ENBALED)
     }
   }
 }

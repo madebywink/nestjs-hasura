@@ -1,4 +1,4 @@
-import { HasuraSession } from "../hasura-session.interface";
+import { HasuraSession } from "../interfaces/hasura-session.interface";
 
 export interface HasuraActionPayload<T> {
   readonly action: {
