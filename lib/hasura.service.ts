@@ -7,6 +7,7 @@ import { DEFAULT_HASURA_ADMIN_SECRET_HEADER } from "./defaults/hasura.module-opt
 import * as fs from "fs/promises";
 import * as path from "path";
 import {
+  DEFAULT_ACTIONS_HANDLER_PATH,
   DEFAULT_EVENTS_HANDLER_PATH,
   DEFAULT_HASURA_PATH,
 } from "./hasura.constants";
@@ -17,7 +18,9 @@ export class HasuraService {
    * Get the Hasura Admin Secret header for a given Hasura instance
    * @param instanceOptions
    */
-  static hasuraAdminSecretHeader(moduleOptions: HasuraModuleOptions): string {
+  static hasuraAdminSecretHeader(
+    moduleOptions: Pick<HasuraModuleOptions, "adminSecretHeader">
+  ): string {
     return (
       moduleOptions.adminSecretHeader ?? DEFAULT_HASURA_ADMIN_SECRET_HEADER
     );
@@ -27,7 +30,9 @@ export class HasuraService {
    * Get the Hasura GraphQL url for a given Hasura instance
    * @param instanceOptions
    */
-  static hasuraGraphqlUrl(moduleOptions: HasuraModuleOptions): string {
+  static hasuraGraphqlUrl(
+    moduleOptions: Pick<HasuraModuleOptions, "hostname" | "scheme">
+  ): string {
     return new url.URL(
       HasuraApi.GraphQL,
       HasuraService.hasuraBaseUrl(moduleOptions)
@@ -38,7 +43,9 @@ export class HasuraService {
    * Get the Hasura GraphQL Engine base url for a given Hasura instance
    * @param instanceOptions
    */
-  static hasuraBaseUrl(moduleOptions: HasuraModuleOptions): string {
+  static hasuraBaseUrl(
+    moduleOptions: Pick<HasuraModuleOptions, "hostname" | "scheme">
+  ): string {
     function buildUrl(scheme: "http" | "https", hostname: string): string {
       return new url.URL(`${scheme}://${hostname}`).toString();
     }
@@ -78,7 +85,7 @@ export class HasuraService {
    * Get the Hasura action webhook path for the given module configuration
    */
   static actionsPath(): string {
-    return DEFAULT_EVENTS_HANDLER_PATH;
+    return DEFAULT_ACTIONS_HANDLER_PATH;
   }
 
   /**
@@ -87,7 +94,11 @@ export class HasuraService {
    */
   static isActionsPath(path: string): boolean {
     const split = HasuraService.splitPath(path);
-    return this.isHasuraPath(split) && split[1] === this.actionsPath();
+
+    return (
+      this.isHasuraPath(split) &&
+      split[1] === HasuraService.splitPath(this.actionsPath())[0]
+    );
   }
 
   /**
@@ -104,13 +115,13 @@ export class HasuraService {
    * @param path
    */
   static isHasuraPath(splitPath: string[]): boolean {
-    return splitPath[0] === this.hasuraPath();
+    return splitPath[0] === HasuraService.splitPath(this.hasuraPath())[0];
   }
 
   static splitPath(path: string): string[] {
-    const [x, ...rest] = path.split("/");
+    const split = path.split("/");
 
-    return rest;
+    return split.slice(1);
   }
 
   /**

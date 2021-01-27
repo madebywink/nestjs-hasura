@@ -14,7 +14,9 @@
   "scripts": {
     "build": "tsc --build",
     "build:watch": "tsc --build --watch",
-    "test": "jest"
+    "test": "jest --config=jest.json",
+    "test:watch": "jest --config=jest.json --watch",
+    "test:coverage": "jest --config=jest.json --coverage --coverageDirectory=coverage"
   },
   "author": "Matt Cain <matt@madebywink.com>",
   "license": "ISC",
@@ -29,14 +31,23 @@
     "@graphql-codegen/typescript": "^1.20.0",
     "@graphql-codegen/typescript-graphql-request": "^3.0.0",
     "@graphql-codegen/typescript-operations": "^1.17.13",
-    "@nestjs/common": "^7.6.3",
     "graphql": "^15.4.0",
     "graphql-request": "^3.4.0"
   },
+  "peerDependencies": {
+    "@nestjs/common": "^7.0.0"
+  },
   "devDependencies": {
+    "@nestjs/common": "^7.6.6",
+    "@nestjs/core": "^7.6.6",
+    "@nestjs/testing": "^7.6.6",
     "@types/express": "^4.17.9",
+    "@types/jest": "^26.0.19",
+    "@types/node": "^14.14.20",
     "express": "^4.17.1",
+    "jest": "^26.6.3",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^6.6.3"
+    "rxjs": "^6.6.3",
+    "ts-jest": "^26.4.4"
   }
 }
