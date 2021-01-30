@@ -35,6 +35,7 @@ interface HasuraSdkOptions {
 export interface HasuraModuleOptions {
   scheme?: "http" | "https";
   hostname: string;
+  port?: number;
   adminSecret: string;
   adminSecretHeader?: string;
   eventsReporting?: EventsReportingOptions;

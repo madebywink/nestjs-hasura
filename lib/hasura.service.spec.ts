@@ -7,6 +7,8 @@ import {
   DEFAULT_EVENTS_HANDLER_PATH,
   DEFAULT_HASURA_PATH,
 } from "./hasura.constants";
+import { HasuraModuleOptions } from "./hasura.module-options";
+import * as path from "path";
 
 describe("HasuraService", () => {
   let hasuraService: HasuraService;
@@ -55,9 +57,24 @@ describe("HasuraService", () => {
       expect(
         HasuraService.hasuraGraphqlUrl({ hostname, scheme: "https" })
       ).toBe(`https://${hostname}${HasuraApi.GraphQL}`);
+
       expect(HasuraService.hasuraGraphqlUrl({ hostname, scheme: "http" })).toBe(
         `http://${hostname}${HasuraApi.GraphQL}`
       );
+
+      expect(
+        HasuraService.hasuraGraphqlUrl({
+          hostname: "localhost",
+          scheme: "http",
+          port: 8000,
+        })
+      ).toBe("http://localhost:8000/v1/graphql");
+    });
+
+    it("should throw if localhost is provided as hostname without a port", () => {
+      expect(() =>
+        HasuraService.hasuraGraphqlUrl({ hostname: "localhost" })
+      ).toThrow();
     });
   });
 
@@ -106,6 +123,68 @@ describe("HasuraService", () => {
 
     it("returns false for non hasura actions paths", () => {
       expect(HasuraService.isActionsPath("/hasura/events")).toBe(false);
+    });
+  });
+
+  describe("isEventsPath", () => {
+    it("returns true for hasura events paths", () => {
+      expect(HasuraService.isEventsPath("/hasura/events")).toBe(true);
+      expect(HasuraService.isEventsPath("/hasura/events/example")).toBe(true);
+      expect(HasuraService.isEventsPath("/hasura/events/")).toBe(true);
+    });
+
+    it("returns false for non hasura actions paths", () => {
+      expect(HasuraService.isEventsPath("/hasura/actions")).toBe(false);
+    });
+  });
+
+  describe("hasuraInstanceOptionsValidForRootRegistration", () => {
+    it("returns false if module configuration does not specify sdk file path", () => {
+      const noSdkOptions: Partial<HasuraModuleOptions> = {};
+      const noCodgenOptions: Partial<HasuraModuleOptions> = { sdkOptions: {} };
+      const noPathOptions: Partial<HasuraModuleOptions> = {
+        sdkOptions: { codegen: {} },
+      };
+
+      expect(
+        HasuraService.hasuraInstanceOptionsValidForRootRegistration(
+          noSdkOptions
+        )
+      ).resolves.toBe(false);
+      expect(
+        HasuraService.hasuraInstanceOptionsValidForRootRegistration(
+          noCodgenOptions
+        )
+      ).resolves.toBe(false);
+      expect(
+        HasuraService.hasuraInstanceOptionsValidForRootRegistration(
+          noPathOptions
+        )
+      ).resolves.toBe(false);
+    });
+
+    it("returns false when a sdk path is provided but cannot be accessed", () => {
+      expect(
+        HasuraService.hasuraInstanceOptionsValidForRootRegistration({
+          sdkOptions: {
+            codegen: {
+              sdkPath: path.resolve(__dirname, "test", "nofile.ts"),
+            },
+          },
+        })
+      ).resolves.toBe(false);
+    });
+
+    it("returns true when a sdk path is provided and can be accessed", () => {
+      expect(
+        HasuraService.hasuraInstanceOptionsValidForRootRegistration({
+          sdkOptions: {
+            codegen: {
+              sdkPath: path.resolve(__dirname, "test", "sdk.ts"),
+            },
+          },
+        })
+      ).resolves.toBe(false);
     });
   });
 });

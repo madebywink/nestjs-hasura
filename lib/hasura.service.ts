@@ -11,6 +11,7 @@ import {
   DEFAULT_EVENTS_HANDLER_PATH,
   DEFAULT_HASURA_PATH,
 } from "./hasura.constants";
+import { hostname } from "os";
 
 @Injectable()
 export class HasuraService {
@@ -31,8 +32,14 @@ export class HasuraService {
    * @param instanceOptions
    */
   static hasuraGraphqlUrl(
-    moduleOptions: Pick<HasuraModuleOptions, "hostname" | "scheme">
+    moduleOptions: Pick<HasuraModuleOptions, "hostname" | "scheme" | "port">
   ): string {
+    if (moduleOptions.hostname === "localhost" && !("port" in moduleOptions)) {
+      throw new Error(
+        '`hostname` in module options provided as "localhost" without a valid `port` specified'
+      );
+    }
+
     return new url.URL(
       HasuraApi.GraphQL,
       HasuraService.hasuraBaseUrl(moduleOptions)
@@ -44,13 +51,23 @@ export class HasuraService {
    * @param instanceOptions
    */
   static hasuraBaseUrl(
-    moduleOptions: Pick<HasuraModuleOptions, "hostname" | "scheme">
+    moduleOptions: Pick<HasuraModuleOptions, "hostname" | "scheme" | "port">
   ): string {
-    function buildUrl(scheme: "http" | "https", hostname: string): string {
-      return new url.URL(`${scheme}://${hostname}`).toString();
+    function buildUrl(
+      scheme: "http" | "https",
+      hostname: string,
+      port?: number
+    ): string {
+      return new url.URL(
+        `${scheme}://${hostname}${port ? `:${port}` : ""}`
+      ).toString();
     }
 
-    return buildUrl(moduleOptions.scheme ?? "https", moduleOptions.hostname);
+    return buildUrl(
+      moduleOptions.scheme ?? "https",
+      moduleOptions.hostname,
+      moduleOptions.port
+    );
   }
 
   /**
@@ -107,7 +124,10 @@ export class HasuraService {
    */
   static isEventsPath(path: string): boolean {
     const split = HasuraService.splitPath(path);
-    return this.isHasuraPath(split) && split[1] === this.eventsPath();
+    return (
+      this.isHasuraPath(split) &&
+      split[1] === HasuraService.splitPath(this.eventsPath())[0]
+    );
   }
 
   /**
@@ -131,12 +151,12 @@ export class HasuraService {
    * @throws if no valid codegen file is provided to instance configuration
    */
   static async hasuraInstanceOptionsValidForRootRegistration(
-    moduleOptions: HasuraModuleOptions
+    moduleOptions: Partial<HasuraModuleOptions>
   ): Promise<boolean> {
     const pathStr = moduleOptions.sdkOptions?.codegen?.sdkPath;
     if (typeof pathStr !== "string") return false;
-    const fPath = path.resolve(pathStr);
     try {
+      const fPath = path.resolve(pathStr);
       await fs.access(fPath);
       return true;
     } catch (e) {
