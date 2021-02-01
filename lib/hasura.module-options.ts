@@ -24,7 +24,7 @@ type ActionsReportingOptions = ReportingOptionsBase & {
   excluded_actions?: string[];
 };
 
-interface HasuraSdkOptions {
+export interface HasuraSdkOptions {
   codegen?: {
     outputDir?: string;
     sdkPath?: string;

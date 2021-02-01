@@ -7,6 +7,6 @@ import { HASURA_SDK_OPTIONS_INJECT } from "../hasura.tokens";
  *
  * @param name optional name of Hasura instance, if using multiple
  */
-export function InjectHasuraSdkOptions(): () => ParameterDecorator {
-  return () => Inject(HASURA_SDK_OPTIONS_INJECT);
+export function InjectHasuraSdkOptions(): ParameterDecorator {
+  return Inject(HASURA_SDK_OPTIONS_INJECT);
 }

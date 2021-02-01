@@ -22,13 +22,11 @@ function buildInjectToken(base: string, ...suffixes: string[]): string {
 }
 
 /**
- * Inject tokens for named or singular GraphQL Client and corresponding options
+ * Inject tokens for GraphQL Client and corresponding options
  */
 export const HASURA_GRAPHQL_CLIENT_INJECT = Symbol(
   buildInjectToken(HASURA_GRAPHQL_CLIENT_TOKEN)
 );
-export const NAMED_HASURA_GRAPHQL_CLIENT_INJECT = (name: string) =>
-  Symbol(buildInjectToken(HASURA_GRAPHQL_CLIENT_TOKEN, name));
 
 export const HASURA_GRAPHQL_CLIENT_OPTIONS_INJECT = Symbol(
   buildInjectToken(
@@ -36,29 +34,15 @@ export const HASURA_GRAPHQL_CLIENT_OPTIONS_INJECT = Symbol(
     HASURA_GRAPHQL_CLIENT_OPTIONS_INJECT_SUFFIX
   )
 );
-export const NAMED_HASURA_GRAPHQL_CLIENT_OPTIONS_INJECT = (name: string) =>
-  Symbol(
-    buildInjectToken(
-      HASURA_GRAPHQL_CLIENT_TOKEN,
-      HASURA_GRAPHQL_CLIENT_OPTIONS_INJECT_SUFFIX,
-      name
-    )
-  );
 
 /**
  * Inject tokens for named or singular Sdks from codegen, and corresponding codegen options
  */
 export const HASURA_SDK_INJECT = Symbol(buildInjectToken(HASURA_SDK_TOKEN));
-export const NAMED_HASURA_SDK_INJECT = (name: string) =>
-  Symbol(buildInjectToken(HASURA_SDK_TOKEN, name));
 
 export const HASURA_SDK_OPTIONS_INJECT = Symbol(
   buildInjectToken(HASURA_SDK_TOKEN, HASURA_SDK_OPTIONS_INJECT_SUFFIX)
 );
-export const NAMED_HASURA_SDK_OPTIONS_INJECT = (name: string) =>
-  Symbol(
-    buildInjectToken(HASURA_SDK_TOKEN, HASURA_SDK_OPTIONS_INJECT_SUFFIX, name)
-  );
 
 /**
  * Inject tokens for instance specific codegen services
@@ -66,8 +50,6 @@ export const NAMED_HASURA_SDK_OPTIONS_INJECT = (name: string) =>
 export const HASURA_CODEGEN_INJECT = Symbol(
   buildInjectToken(HASURA_CODEGEN_TOKEN)
 );
-export const NAMED_HASURA_CODEGEN_INJECT = (name: string) =>
-  Symbol(buildInjectToken(HASURA_CODEGEN_TOKEN, name));
 
 /**
  * Inject tokens for Hasura instance options
@@ -75,5 +57,3 @@ export const NAMED_HASURA_CODEGEN_INJECT = (name: string) =>
 export const HASURA_INSTANCE_OPTIONS_INJECT = Symbol(
   buildInjectToken(HASURA_INSTANCE_OPTIONS_TOKEN)
 );
-export const NAMED_HASURA_INSTANCE_OPTIONS_INJECT = (name: string) =>
-  Symbol(buildInjectToken(HASURA_INSTANCE_OPTIONS_TOKEN, name));

@@ -134,7 +134,9 @@ export async function mockIntrospectionQuery(): Promise<IntrospectionResultData>
   };
 
   if (!("__schema" in result.data)) {
+    /* istanbul ignore next */
     console.log("Mock result:", result);
+    /* istanbul ignore next */
     throw new Error("Expected a properly mocked introspection.");
   }
 
