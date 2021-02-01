@@ -79,15 +79,18 @@ export type HasuraModuleAsyncOptions =
   | HasuraModuleAsyncOptionsExisting;
 
 export function mergeGraphqlClientOptions(
-  instanceOptions: HasuraModuleOptions
+  moduleOptions: Pick<
+    HasuraModuleOptions,
+    "graphQLClientOptions" | "adminSecret" | "adminSecretHeader"
+  >
 ): GrapQLClientOptions {
   return {
-    ...instanceOptions.graphQLClientOptions,
+    ...moduleOptions.graphQLClientOptions,
     headers: {
-      ...instanceOptions.graphQLClientOptions?.headers,
+      ...moduleOptions.graphQLClientOptions?.headers,
       [HasuraService.hasuraAdminSecretHeader(
-        instanceOptions
-      )]: instanceOptions.adminSecret,
+        moduleOptions
+      )]: moduleOptions.adminSecret,
     },
   };
 }

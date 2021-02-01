@@ -9,7 +9,7 @@ import {
 } from "../hasura.error-messages";
 import { InjectHasuraModuleOptions } from "../decorators/inject-hasura-module-options.decorator";
 
-export class HasuraEventHandlerHeaderGuard implements CanActivate {
+export class HasuraWebhookHandlerHeaderGuard implements CanActivate {
   private readonly eventsSecret: string | undefined;
   private readonly actionsSecret: string | undefined;
 
