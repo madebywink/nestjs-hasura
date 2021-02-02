@@ -58,7 +58,7 @@ interface HasuraModuleAsyncOptionsBase extends Pick<ModuleMetadata, "imports"> {
 
 export interface HasuraModuleAsyncOptionsExisting
   extends HasuraModuleAsyncOptionsBase {
-  useExisting: Type<HasuraOptionsFactory>;
+  useExisting: Type<HasuraOptionsFactory> | string | symbol;
 }
 
 export interface HasuraModuleAsyncOptionsFactory

@@ -17,6 +17,7 @@ import * as path from "path";
 import { getSdk as mockGetSdk } from "./__fixtures__/sdk";
 import { HasuraInjectionToken } from "./hasura.tokens";
 import { HasuraWebhookHandlerHeaderGuard } from "./guards/hasura-webhook-handler-header.guard";
+import { ExistingOptionsContainer } from "./__fixtures__/existing-options-container.module";
 
 describe("HasuraModule", () => {
   function testModuleDependencies(testingModule: TestingModule) {
@@ -74,6 +75,43 @@ describe("HasuraModule", () => {
   });
 
   describe("registerAsync", () => {
+    it("registers the module with existing options", async () => {
+      const testingModule = await Test.createTestingModule({
+        imports: [
+          HasuraModule.registerAsync({
+            useExisting: "existing_options",
+            imports: [ExistingOptionsContainer],
+          }),
+        ],
+        providers: [],
+      }).compile();
+
+      testModuleDependencies(testingModule);
+    });
+
+    it("registers the module with a factory provider", async () => {
+      const testingModule = await Test.createTestingModule({
+        imports: [
+          HasuraModule.registerAsync({
+            useFactory: async () => {
+              return new Promise<HasuraModuleOptions>((resolve) => {
+                process.nextTick(() => {
+                  resolve({
+                    hostname: "localhost",
+                    port: 8080,
+                    adminSecret: "test",
+                    scheme: "http",
+                  });
+                });
+              });
+            },
+          }),
+        ],
+      }).compile();
+
+      testModuleDependencies(testingModule);
+    });
+
     it("registers the module with a class provider", async () => {
       class OptionsFactory implements HasuraOptionsFactory {
         async createHausraOptions(): Promise<HasuraModuleOptions> {

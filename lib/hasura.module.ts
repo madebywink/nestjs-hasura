@@ -81,10 +81,15 @@ export class HasuraModule {
     if ("useExisting" in options) {
       moduleOptionsProvider = {
         provide: HasuraInjectionToken.ModuleOptions,
-        async useFactory(optionsFactory: HasuraOptionsFactory) {
-          return optionsFactory.createHausraOptions();
-        },
-        inject: [options.useExisting],
+        useExisting: options.useExisting,
+      };
+    }
+
+    if ("useFactory" in options) {
+      moduleOptionsProvider = {
+        provide: HasuraInjectionToken.ModuleOptions,
+        useFactory: options.useFactory,
+        inject: options.inject ?? [],
       };
     }
 
