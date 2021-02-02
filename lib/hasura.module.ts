@@ -11,6 +11,7 @@ import { SYNC_REGISTER_CODEGEN_ENBALED } from "./hasura.error-messages";
 import { HasuraCodegenService } from "./hasura-codegen.service";
 import { GetSdk } from "./hasura-sdk.types";
 import { HasuraDescriptorToken, HasuraInjectionToken } from "./hasura.tokens";
+import { HasuraWebhookHandlerHeaderGuard } from "./guards/hasura-webhook-handler-header.guard";
 
 @Module({})
 export class HasuraModule {
@@ -55,7 +56,7 @@ export class HasuraModule {
           },
           inject: [HasuraInjectionToken.GraphQLClient],
         },
-        HasuraCodegenService,
+        ...HasuraModule.staticProviders,
       ],
     };
   }
@@ -136,7 +137,7 @@ export class HasuraModule {
           },
           inject: [HasuraInjectionToken.GraphQLClient],
         },
-        HasuraCodegenService,
+        ...HasuraModule.staticProviders,
       ],
     };
   }
@@ -179,4 +180,9 @@ export class HasuraModule {
         ((x: unknown) => x)
     );
   }
+
+  private static staticProviders: Provider[] = [
+    HasuraCodegenService,
+    HasuraWebhookHandlerHeaderGuard,
+  ];
 }

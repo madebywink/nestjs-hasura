@@ -16,6 +16,7 @@ import rimraf from "rimraf";
 import * as path from "path";
 import { getSdk as mockGetSdk } from "./__fixtures__/sdk";
 import { HasuraInjectionToken } from "./hasura.tokens";
+import { HasuraWebhookHandlerHeaderGuard } from "./guards/hasura-webhook-handler-header.guard";
 
 describe("HasuraModule", () => {
   function testModuleDependencies(testingModule: TestingModule) {
@@ -48,6 +49,11 @@ describe("HasuraModule", () => {
       HasuraCodegenService
     );
     expect(hasuraCodegenService).toBeDefined();
+
+    const webhookGuard = testingModule.get<HasuraWebhookHandlerHeaderGuard>(
+      HasuraWebhookHandlerHeaderGuard
+    );
+    expect(webhookGuard).toBeDefined();
   }
 
   describe("register", () => {
