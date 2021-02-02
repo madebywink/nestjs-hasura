@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { HasuraCodegenService } from "./hasura-codegen.service";
 import { HasuraModuleOptions } from "./hasura.module-options";
-import { HASURA_MODULE_OPTIONS_INJECT } from "./hasura.tokens";
+import { HasuraInjectionToken } from "./hasura.tokens";
 import * as path from "path";
 import nock from "nock";
 import { mockIntrospectionQuery } from "./__fixtures__/mock-server";
@@ -24,7 +24,7 @@ describe("HasuraCodegenService", () => {
     return Test.createTestingModule({
       providers: [
         {
-          provide: HASURA_MODULE_OPTIONS_INJECT,
+          provide: HasuraInjectionToken.ModuleOptions,
           useValue: moduleOptions,
         },
         HasuraCodegenService,

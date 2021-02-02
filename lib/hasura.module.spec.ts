@@ -5,6 +5,7 @@ import nock from "nock";
 import {
   GrapQLClientOptions,
   HasuraModuleOptions,
+  HasuraOptionsFactory,
   mergeGraphqlClientOptions,
 } from "./hasura.module-options";
 import { GraphQLClient } from "graphql-request";
@@ -14,38 +15,43 @@ import { mockIntrospectionQuery } from "./__fixtures__/mock-server";
 import rimraf from "rimraf";
 import * as path from "path";
 import { getSdk as mockGetSdk } from "./__fixtures__/sdk";
-import {
-  HASURA_GRAPHQL_CLIENT_INJECT,
-  HASURA_GRAPHQL_CLIENT_OPTIONS_INJECT,
-  HASURA_MODULE_OPTIONS_INJECT,
-  HASURA_SDK_INJECT,
-} from "./hasura.tokens";
+import { HasuraInjectionToken } from "./hasura.tokens";
 
 describe("HasuraModule", () => {
   function testModuleDependencies(testingModule: TestingModule) {
     expect(testingModule).toBeDefined();
 
     const moduleOptions = testingModule.get<HasuraModuleOptions>(
-      HASURA_MODULE_OPTIONS_INJECT
+      HasuraInjectionToken.ModuleOptions
     );
     expect(moduleOptions).toBeDefined();
 
     const grapQLClientOptions = testingModule.get<GrapQLClientOptions>(
-      HASURA_GRAPHQL_CLIENT_OPTIONS_INJECT
+      HasuraInjectionToken.GraphQLClientOptions
     );
     expect(grapQLClientOptions).toBeDefined();
 
-    const hasuraSdkOptions = testingModule.get<GraphQLClient>(
-      HASURA_GRAPHQL_CLIENT_INJECT
+    const graphQLClient = testingModule.get<GraphQLClient>(
+      HasuraInjectionToken.GraphQLClient
+    );
+    expect(graphQLClient).toBeDefined();
+
+    const hasuraSdkOptions = testingModule.get<unknown>(
+      HasuraInjectionToken.SdkOptions
     );
     expect(hasuraSdkOptions).toBeDefined();
 
-    const hasuraSdk = testingModule.get<unknown>(HASURA_SDK_INJECT);
+    const hasuraSdk = testingModule.get<unknown>(HasuraInjectionToken.Sdk);
     expect(hasuraSdk).toBeDefined();
+
+    const hasuraCodegenService = testingModule.get<HasuraCodegenService>(
+      HasuraCodegenService
+    );
+    expect(hasuraCodegenService).toBeDefined();
   }
 
   describe("register", () => {
-    it("succesfully sync registers the module", async () => {
+    it("registers the module synchronously", async () => {
       const options: HasuraModuleOptions = {
         hostname: "localhost",
         scheme: "http",
@@ -55,6 +61,37 @@ describe("HasuraModule", () => {
 
       const testingModule = await Test.createTestingModule({
         imports: [HasuraModule.register(options, mockGetSdk)],
+      }).compile();
+
+      testModuleDependencies(testingModule);
+    });
+  });
+
+  describe("registerAsync", () => {
+    it("registers the module with a class provider", async () => {
+      class OptionsFactory implements HasuraOptionsFactory {
+        async createHausraOptions(): Promise<HasuraModuleOptions> {
+          async function stub() {
+            return new Promise<void>((resolve) => {
+              process.nextTick(() => {
+                resolve();
+              });
+            });
+          }
+
+          await stub();
+
+          return {
+            hostname: "localhost",
+            port: 8080,
+            scheme: "http",
+            adminSecret: "test",
+          };
+        }
+      }
+
+      const testingModule = await Test.createTestingModule({
+        imports: [HasuraModule.registerAsync({ useClass: OptionsFactory })],
       }).compile();
 
       testModuleDependencies(testingModule);

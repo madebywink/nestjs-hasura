@@ -1,4 +1,4 @@
-import { HASURA_EVENT_HANDLER } from "../hasura.tokens";
+import { HasuraInjectionToken } from "../hasura.tokens";
 
 interface HasuraEventHandlerOpts {
   trigger: string;
@@ -18,7 +18,11 @@ export function HasuraEventHandler(
     key: string | symbol,
     descriptor: TypedPropertyDescriptor<any>
   ) {
-    Reflect.defineMetadata(HASURA_EVENT_HANDLER, opts, descriptor.value);
+    Reflect.defineMetadata(
+      HasuraInjectionToken.EventHandler,
+      opts,
+      descriptor.value
+    );
     return descriptor;
   };
 }

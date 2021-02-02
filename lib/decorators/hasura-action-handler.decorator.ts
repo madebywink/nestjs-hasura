@@ -1,4 +1,4 @@
-import { HASURA_ACTION_HANDLER } from "../hasura.tokens";
+import { HasuraInjectionToken } from "../hasura.tokens";
 
 interface HasuraActionHandlerOpts {
   action: string;
@@ -20,7 +20,11 @@ export function HasuraActionHandler(
     key: string | symbol,
     descriptor: TypedPropertyDescriptor<any>
   ) {
-    Reflect.defineMetadata(HASURA_ACTION_HANDLER, opts, descriptor.value);
+    Reflect.defineMetadata(
+      HasuraInjectionToken.ActionHandler,
+      opts,
+      descriptor.value
+    );
     return descriptor;
   };
 }

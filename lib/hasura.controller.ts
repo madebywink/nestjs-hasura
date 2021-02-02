@@ -1,7 +1,7 @@
 import { Body, Controller, HttpCode, Post, UseGuards } from "@nestjs/common";
 import { HasuraEventTriggerPayload } from "./dto/hasura-event-trigger-payload.interface";
 import { HasuraScheduledEventPayload } from "./dto/hasura-scheduled-event-payload.interface";
-import { HasuraEventHandlerHeaderGuard } from "./guards/hasura-webhook-handler-header.guard";
+import { HasuraWebhookHandlerHeaderGuard } from "./guards/hasura-webhook-handler-header.guard";
 import { HasuraEventHandlerService } from "./hasura-event-handler.service";
 import { isHasuraScheduledEvent, OpName } from "./hasura.types";
 import {
@@ -15,7 +15,7 @@ export class HasuraController {
     private readonly eventHandlerService: HasuraEventHandlerService
   ) {}
 
-  @UseGuards(HasuraEventHandlerHeaderGuard)
+  @UseGuards(HasuraWebhookHandlerHeaderGuard)
   @Post(DEFAULT_EVENTS_HANDLER_PATH)
   @HttpCode(202)
   async handleEvent<T, U extends OpName>(
