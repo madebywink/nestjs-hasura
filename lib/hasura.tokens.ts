@@ -13,12 +13,12 @@ export const HASURA_ACTION_HANDLER = Symbol("HASURA_ACTION_HANDLER");
 
 export const HASURA_MODULE_OPTIONS_INJECT = Symbol("HASURA_MODULE_OPTIONS");
 
-function buildInjectToken(base: string, ...suffixes: string[]): string {
-  if (!suffixes) {
+export function buildInjectToken(base: string, ...suffixes: string[]): string {
+  if (!suffixes.length) {
     return base;
   }
 
-  return `${base}:${suffixes.map((s) => s.toUpperCase).join("_")}`;
+  return `${base}:${suffixes.map((s) => s.toUpperCase()).join("_")}`;
 }
 
 /**

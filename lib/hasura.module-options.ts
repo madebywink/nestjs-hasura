@@ -8,7 +8,7 @@ type GraphQLClientConstructorParams = ConstructorParameters<
   typeof GraphQLClient
 >;
 
-type GrapQLClientOptions = GraphQLClientConstructorParams[1];
+export type GrapQLClientOptions = GraphQLClientConstructorParams[1];
 
 interface ReportingOptionsBase {
   level: SchemaMetadataReportingLevel;

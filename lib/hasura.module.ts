@@ -34,6 +34,25 @@ export class HasuraModule {
       throw new Error(SYNC_REGISTER_CODEGEN_ENBALED);
     }
 
+    const codegenService = new HasuraCodegenService(options);
+
+    const graphQLClientProviders = HasuraModule.createGraphQLClientProviders(
+      options
+    );
+
+    const hasuraSdkProviders = HasuraModule.createSdkProviders(
+      options,
+      graphQLClientProviders.graphQLClient,
+      codegenService,
+      getSdk
+    );
+
+    if (hasuraSdkProviders instanceof Promise) {
+      throw new Error(
+        "Expected HasuraModule#createSdkProviders to not turn a promise."
+      );
+    }
+
     return {
       module: HasuraModule,
       providers: [
@@ -41,7 +60,8 @@ export class HasuraModule {
           provide: HASURA_MODULE_OPTIONS_INJECT,
           useValue: options,
         },
-        ...HasuraModule.createGraphQLClientProviders(options),
+        ...graphQLClientProviders.providers,
+        ...hasuraSdkProviders,
       ],
     };
   }
@@ -92,20 +112,28 @@ export class HasuraModule {
    */
   private static createGraphQLClientProviders(
     options: HasuraModuleOptions
-  ): Provider[] {
-    return [
-      {
-        provide: HASURA_GRAPHQL_CLIENT_OPTIONS_INJECT,
-        useValue: mergeGraphqlClientOptions(options),
-      },
-      {
-        provide: HASURA_GRAPHQL_CLIENT_INJECT,
-        useValue: new GraphQLClient(
-          HasuraService.hasuraGraphqlUrl(options),
-          mergeGraphqlClientOptions(options)
-        ),
-      },
-    ];
+  ): {
+    providers: Provider[];
+    graphQLClient: GraphQLClient;
+  } {
+    const client = new GraphQLClient(
+      HasuraService.hasuraGraphqlUrl(options),
+      mergeGraphqlClientOptions(options)
+    );
+
+    return {
+      graphQLClient: client,
+      providers: [
+        {
+          provide: HASURA_GRAPHQL_CLIENT_OPTIONS_INJECT,
+          useValue: mergeGraphqlClientOptions(options),
+        },
+        {
+          provide: HASURA_GRAPHQL_CLIENT_INJECT,
+          useValue: client,
+        },
+      ],
+    };
   }
 
   /**
@@ -114,8 +142,10 @@ export class HasuraModule {
    */
   private static createSdkProviders(
     options: HasuraModuleOptions,
+    graphQLClient: GraphQLClient,
+    codegenService: HasuraCodegenService,
     getSdk?: GetSdk
-  ): Provider[] {
+  ): Provider[] | Promise<Provider[]> {
     return [
       {
         provide: HASURA_SDK_OPTIONS_INJECT,
@@ -123,7 +153,12 @@ export class HasuraModule {
       },
       {
         provide: HASURA_SDK_INJECT,
-        useValue: undefined,
+        useValue: HasuraModule.getHasuraSdk(
+          options,
+          graphQLClient,
+          codegenService,
+          getSdk
+        ),
       },
     ];
   }

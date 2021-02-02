@@ -79,14 +79,14 @@ describe("HasuraCodegenService", () => {
   describe("graphqlCodegen", () => {
     const outputDir = "codegen-tmp";
 
+    let module: TestingModule;
+    let service: HasuraCodegenService;
+
     afterAll(() => {
       rimraf.sync(path.resolve(__dirname, outputDir));
     });
 
     it("generates a graphql-codegen file given a module configuration", async () => {
-      let module: TestingModule;
-      let service: HasuraCodegenService;
-
       module = await setupTestingModule({
         ...baseModuleOptions,
         sdkOptions: { codegen: { outputDir } },
@@ -110,6 +110,25 @@ describe("HasuraCodegenService", () => {
       } catch (e) {
         console.error(e);
         throw e;
+      }
+    });
+
+    it("should throw when an invalid config is given", async () => {
+      module = await setupTestingModule({
+        ...baseModuleOptions,
+        sdkOptions: { codegen: { outputDir } },
+      });
+      service = module.get<HasuraCodegenService>(HasuraCodegenService);
+
+      nock("http://localhost:8080").post("/v1/graphql").reply(500, {});
+
+      const mockedLog = jest.spyOn(console, "log").mockImplementation(() => {});
+
+      try {
+        await service.graphqlCodegen();
+      } catch (e) {
+        expect(e).toBeDefined();
+        mockedLog.mockRestore();
       }
     });
   });
