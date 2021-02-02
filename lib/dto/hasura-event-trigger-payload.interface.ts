@@ -1,6 +1,12 @@
 import { HasuraSession } from "../interfaces/hasura-session.interface";
 import { OpName } from "../hasura.types";
 
+export function isHasuraEventTriggerPayload<T, U extends OpName>(
+  v: any
+): v is HasuraEventTriggerPayload<T, U> {
+  return "event" in v && "trigger" in v && "payload" in v;
+}
+
 export interface HasuraEventTriggerPayload<T, O extends OpName> {
   readonly event: {
     session_variables: (Record<string, string> & HasuraSession) | null;

@@ -7,7 +7,7 @@ import { HasuraEventHandlerOptions } from "../interfaces/hasura-event-handler-op
  * @param opts The configuration options for this handler
  * @param opts.trigger the name of the event trigger
  */
-export function HasuraEventHandler(
+export function HasuraScheduledEventHandler(
   opts: HasuraEventHandlerOptions
 ): MethodDecorator {
   return function (
@@ -16,7 +16,7 @@ export function HasuraEventHandler(
     descriptor: TypedPropertyDescriptor<any>
   ) {
     Reflect.defineMetadata(
-      HasuraInjectionToken.EventHandler,
+      HasuraInjectionToken.ScheduledEventHandler,
       opts,
       descriptor.value
     );

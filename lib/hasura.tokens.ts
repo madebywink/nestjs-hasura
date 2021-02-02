@@ -5,7 +5,9 @@ export enum HasuraInjectionToken {
   GraphQLClientOptions = "GRAPHQL_CLIENT_OPTIONS",
   ModuleOptions = "MODULE_OPTIONS",
   EventHandler = "EVENT_HANDLER",
+  ScheduledEventHandler = "SCHEDULED_EVENT_HANDLER",
   ActionHandler = "ACTION_HANDLER",
+  Controller = "CONTROLLER",
 }
 
 export enum HasuraDescriptorToken {

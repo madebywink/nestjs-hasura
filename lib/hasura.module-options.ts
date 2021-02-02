@@ -46,6 +46,15 @@ export interface HasuraModuleOptions {
   actionsSecret?: string;
   actionsSecretHeader?: string;
   sdkOptions?: HasuraSdkOptions;
+  logging?: HasuraLoggingOptions;
+}
+
+interface HasuraLoggingOptions {
+  handlers?: {
+    events?: boolean;
+    scheduledEvents?: boolean;
+    actions?: boolean;
+  };
 }
 
 export interface HasuraOptionsFactory {

@@ -1,9 +1,5 @@
 import { HasuraInjectionToken } from "../hasura.tokens";
-
-interface HasuraActionHandlerOpts {
-  action: string;
-  method: "GET" | "POST";
-}
+import { HasuraActionHandlerOptions } from "../interfaces/hasura-action-handler-options.interface";
 
 /**
  * Decorates a service method as a handler for incoming Hasura actions.
@@ -13,7 +9,7 @@ interface HasuraActionHandlerOpts {
  * @param opts.method the HTTP method to respond with (either GET or POST)
  */
 export function HasuraActionHandler(
-  opts: HasuraActionHandlerOpts
+  opts: HasuraActionHandlerOptions
 ): MethodDecorator {
   return function (
     target: object,

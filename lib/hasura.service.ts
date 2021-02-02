@@ -11,7 +11,6 @@ import {
   DEFAULT_EVENTS_HANDLER_PATH,
   DEFAULT_HASURA_PATH,
 } from "./hasura.constants";
-import { hostname } from "os";
 
 @Injectable()
 export class HasuraService {
