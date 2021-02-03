@@ -31,16 +31,25 @@ import * as _ from "lodash";
 import { HasuraHandlerDefinitions } from "./interfaces/hasura-handler-definition.interface";
 import { HasuraEventHandlerService } from "./hasura-event-handler.service";
 import { eventHandlerFactory } from "./factories/event-handler.factory";
+import { HasuraScheduledEventHandlerOptions } from "./interfaces/hasura-scheduled-event-handler-options.interface";
+import { scheduledEventHandlerFactory } from "./factories/scheduled-event-handler.factory";
+import { HasuraActionHandlerService } from "./hasura-action-handler.service";
+import { actionHandlerFactory } from "./factories/action-handler.factory";
 
 @Module({
   imports: [DiscoveryModule],
-  providers: [HasuraWebhookHandlerHeaderGuard, HasuraCodegenService],
+  providers: [
+    HasuraWebhookHandlerHeaderGuard,
+    HasuraCodegenService,
+    HasuraEventHandlerService,
+    HasuraActionHandlerService,
+  ],
 })
 export class HasuraModule implements OnModuleInit {
   private readonly logger = new Logger(HasuraModule.name);
   private eventHandlerMethods: DiscoveredMethodWithMeta<HasuraEventHandlerOptions>[] = [];
   private actionHandlerMethods: DiscoveredMethodWithMeta<HasuraActionHandlerOptions>[] = [];
-  private scheduledEventHandlerMethods: DiscoveredMethodWithMeta<HasuraEventHandlerOptions>[] = [];
+  private scheduledEventHandlerMethods: DiscoveredMethodWithMeta<HasuraScheduledEventHandlerOptions>[] = [];
 
   constructor(
     @InjectHasuraModuleOptions()
@@ -53,6 +62,8 @@ export class HasuraModule implements OnModuleInit {
     this.logger.log("Initializing Hasura Module");
 
     await this.discoverHandlerMethods();
+    await this.setupEventHandlers();
+    await this.setupScheduledEventHandlers();
   }
 
   /**
@@ -224,6 +235,9 @@ export class HasuraModule implements OnModuleInit {
     );
   }
 
+  /**
+   * Discover action, event, and scheduled event handler methods within the module context
+   */
   private async discoverHandlerMethods() {
     this.eventHandlerMethods = await this.discoveryService.providerMethodsWithMetaAtKey<HasuraEventHandlerOptions>(
       HasuraInjectionToken.EventHandler
@@ -237,7 +251,7 @@ export class HasuraModule implements OnModuleInit {
       );
     }
 
-    this.scheduledEventHandlerMethods = await this.discoveryService.providerMethodsWithMetaAtKey<HasuraEventHandlerOptions>(
+    this.scheduledEventHandlerMethods = await this.discoveryService.providerMethodsWithMetaAtKey<HasuraScheduledEventHandlerOptions>(
       HasuraInjectionToken.ScheduledEventHandler
     );
 
@@ -262,6 +276,9 @@ export class HasuraModule implements OnModuleInit {
     }
   }
 
+  /**
+   * Overrides HasuraEventHandlerService#handleEvent with provided handlers
+   */
   private async setupEventHandlers() {
     const groupedByProvider = _.groupBy(
       this.eventHandlerMethods,
@@ -295,6 +312,94 @@ export class HasuraModule implements OnModuleInit {
     )[0].instance as HasuraEventHandlerService;
 
     eventHandlerServiceInstance.handleEvent = eventHandlerFactory(
+      this.moduleOptions,
+      handlerDefinitions,
+      this.logger
+    );
+  }
+
+  /**
+   * Overrides HasuraEventHandlerService#handleScheduledEvent with provided handlers
+   */
+  private async setupScheduledEventHandlers() {
+    const groupedByProvider = _.groupBy(
+      this.scheduledEventHandlerMethods,
+      (m) => m.discoveredMethod.parentClass.name
+    );
+
+    const handlerDefinitions: HasuraHandlerDefinitions = {};
+
+    for (const group of Object.keys(groupedByProvider)) {
+      this.logger.log(
+        `Registering Hasura scheduled event handlers from ${group}`
+      );
+      for (const handler of groupedByProvider[group]) {
+        const key = handler.meta.name;
+        const externalContext = this.externalContextCreator.create(
+          handler.discoveredMethod.parentClass.instance,
+          handler.discoveredMethod.handler,
+          handler.discoveredMethod.methodName
+        );
+
+        if (!handlerDefinitions[key]) {
+          handlerDefinitions[key] = [externalContext];
+        } else {
+          handlerDefinitions[key].push(externalContext);
+        }
+      }
+    }
+
+    const eventHandlerServiceInstance = (
+      await this.discoveryService.providers(
+        (p) => p.name === HasuraEventHandlerService.name
+      )
+    )[0].instance as HasuraEventHandlerService;
+
+    eventHandlerServiceInstance.handleScheduledEvent = scheduledEventHandlerFactory(
+      this.moduleOptions,
+      handlerDefinitions,
+      this.logger
+    );
+  }
+
+  /**Z
+   * Overrides HasuraEventHandlerService#handleScheduledEvent with provided handlers
+   */
+  private async setupActionHandlers() {
+    const groupedByProvider = _.groupBy(
+      this.actionHandlerMethods,
+      (m) => m.discoveredMethod.parentClass.name
+    );
+
+    const handlerDefinitions: HasuraHandlerDefinitions = {};
+
+    for (const group of Object.keys(groupedByProvider)) {
+      this.logger.log(
+        `Registering Hasura scheduled event handlers from ${group}`
+      );
+      for (const handler of groupedByProvider[group]) {
+        const key = handler.meta.action;
+        const externalContext = this.externalContextCreator.create(
+          handler.discoveredMethod.parentClass.instance,
+          handler.discoveredMethod.handler,
+          handler.discoveredMethod.methodName
+        );
+
+        if (!handlerDefinitions[key]) {
+          handlerDefinitions[key] = [externalContext];
+        } else {
+          handlerDefinitions[key].push(externalContext);
+        }
+      }
+    }
+
+    const actionHandlerServiceInstance = (
+      await this.discoveryService.providers(
+        (p) => p.name === HasuraActionHandlerService.name
+      )
+    )[0].instance as HasuraActionHandlerService;
+
+    actionHandlerServiceInstance.handleAction = actionHandlerFactory(
       this.moduleOptions,
       handlerDefinitions,
       this.logger
