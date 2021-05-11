@@ -34,7 +34,7 @@
     "@graphql-codegen/typescript-operations": "^1.17.13",
     "graphql": "^15.4.0",
     "graphql-request": "^3.4.0",
-    "lodash": "^4.17.20"
+    "lodash": "^4.17.21"
   },
   "peerDependencies": {
     "@nestjs/common": "^7.0.0"
